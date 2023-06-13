@@ -16,10 +16,7 @@ export default (rootDirectory: string): Router | Router[] => {
     const tempToken = jwt.sign({ nonce, address }, jwtSecret, {
       expiresIn: "60s",
     });
-
     const message = getSignMessage(address, nonce);
-    // const message = "Pls sign message ";
-
     res.json({ tempToken, message });
   });
 
@@ -29,11 +26,18 @@ export default (rootDirectory: string): Router | Router[] => {
 
     if (tempToken === null) return res.sendStatus(403);
 
-    const userData = await jwt.verify(tempToken, jwtSecret);
+    interface JwtPayload {
+      nonce: string;
+      address: string;
+    }
+    const userData = (await jwt.verify(tempToken, jwtSecret)) as JwtPayload;
+
     const nonce = userData.nonce;
     const address = userData.address;
     const message = getSignMessage(address, nonce);
     const signature = req.query.signature;
+
+    res.json("Verifying nonce");
 
     // const verifiedAddress = await web3.eth.accounts.recover(message, signature);
     const verifiedAddress = "mierda";
@@ -50,6 +54,5 @@ export default (rootDirectory: string): Router | Router[] => {
   const getSignMessage = (address, nonce) => {
     return `Please sign this message for address ${address}:\n\n${nonce}`;
   };
-
   return router;
 };
