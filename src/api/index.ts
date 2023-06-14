@@ -21,7 +21,7 @@ export default (rootDirectory: string): Router | Router[] => {
     const nonce = new Date().getTime();
     const address = req.query.address;
 
-    const tempToken = jwt.sign({ nonce, address }, jwtSecret, {
+    const tempToken = jwt.sign({ nonce }, jwtSecret, {
       expiresIn: "1660s",
     });
     const message = getSignMessage(address, nonce);
