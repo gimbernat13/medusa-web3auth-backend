@@ -1,12 +1,20 @@
 import { Router } from "express";
 import * as dotenv from "dotenv";
 import * as jwt from "jsonwebtoken"; //TODO: Import only necessary parts of jwt
+import { projectConfig } from "../../medusa-config";
+import cors from "cors";
 
 dotenv.config();
+const corsOptions = {
+  origin: projectConfig.store_cors.split(","),
+  credentials: true,
+};
 
 export default (rootDirectory: string): Router | Router[] => {
   const router = Router();
   const jwtSecret = process.env.JWT_SECRET;
+
+  router.use(cors(corsOptions));
 
   // Define your custom route
   router.get("/nonce", (req, res) => {
@@ -14,7 +22,7 @@ export default (rootDirectory: string): Router | Router[] => {
     const address = req.query.address;
 
     const tempToken = jwt.sign({ nonce, address }, jwtSecret, {
-      expiresIn: "60s",
+      expiresIn: "1660s",
     });
     const message = getSignMessage(address, nonce);
     res.json({ tempToken, message });
@@ -33,14 +41,15 @@ export default (rootDirectory: string): Router | Router[] => {
     const userData = (await jwt.verify(tempToken, jwtSecret)) as JwtPayload;
 
     const nonce = userData.nonce;
+
+    res.json({ message: "😎 User Nonce is : ", nonce: nonce });
     const address = userData.address;
     const message = getSignMessage(address, nonce);
     const signature = req.query.signature;
 
-    res.json("Verifying nonce");
-
     // const verifiedAddress = await web3.eth.accounts.recover(message, signature);
     const verifiedAddress = "mierda";
+
     if (verifiedAddress.toLowerCase() == address.toLowerCase()) {
       const token = jwt.sign({ verifiedAddress }, jwtSecret, {
         expiresIn: "1d",
