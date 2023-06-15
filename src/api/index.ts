@@ -2,7 +2,13 @@ import { Router } from "express";
 import * as dotenv from "dotenv";
 import * as jwt from "jsonwebtoken"; //TODO: Import only necessary parts of jwt
 // import { projectConfig } from "../../medusa-config";
+
 import cors from "cors";
+import * as bodyParser from "body-parser";
+import { authenticate, ConfigModule } from "@medusajs/medusa";
+import { getConfigFile } from "medusa-core-utils";
+import { attachStoreRoutes } from "./routes/store";
+import { attachAdminRoutes } from "./routes/admin";
 
 dotenv.config();
 const corsOptions = {
@@ -11,57 +17,51 @@ const corsOptions = {
 };
 
 export default (rootDirectory: string): Router | Router[] => {
+  // Read currently-loaded medusa config
+  const { configModule } = getConfigFile<ConfigModule>(
+    rootDirectory,
+    "medusa-config"
+  );
+  const { projectConfig } = configModule;
+
+  // Set up our CORS options objects, based on config
+  const storeCorsOptions = {
+    origin: projectConfig.store_cors.split(","),
+    credentials: true,
+  };
+
+  const adminCorsOptions = {
+    origin: projectConfig.admin_cors.split(","),
+    credentials: true,
+  };
+
+  // Set up express router
   const router = Router();
-  const jwtSecret = process.env.JWT_SECRET;
 
-  router.use(cors(corsOptions));
+  // Set up root routes for store and admin endpoints, with appropriate CORS settings
+  router.use("/store", cors(storeCorsOptions), bodyParser.json());
+  router.use("/admin", cors(adminCorsOptions), bodyParser.json());
 
-  // Define your custom route
+  // Add authentication to all admin routes *except* auth and account invite ones
+  router.use(/\/admin\/((?!auth)(?!invites).*)/, authenticate());
+
+  // Set up routers for store and admin endpoints
+  const storeRouter = Router();
+  const adminRouter = Router();
+
+  // Attach these routers to the root routes
+  router.use("/store", storeRouter);
+  router.use("/admin", adminRouter);
+
+  // Attach custom routes to these routers
+  attachStoreRoutes(storeRouter);
+  attachAdminRoutes(adminRouter);
+
   router.get("/nonce", (req, res) => {
     const nonce = new Date().getTime();
     const address = req.query.address;
-
-    const tempToken = jwt.sign({ nonce }, jwtSecret, {
-      expiresIn: "1660s",
-    });
-    const message = getSignMessage(address, nonce);
-    res.json({ tempToken, message });
+    res.json(nonce);
   });
 
-  router.post("/verify", async (req, res) => {
-    const authHeader = req.headers["authorization"];
-    const tempToken = authHeader && authHeader.split(" ")[1];
-
-    if (tempToken === null) return res.sendStatus(403);
-
-    interface JwtPayload {
-      nonce: string;
-      address: string;
-    }
-    const userData = (await jwt.verify(tempToken, jwtSecret)) as JwtPayload;
-
-    const nonce = userData.nonce;
-
-    res.json({ message: "😎 User Nonce is : ", nonce: nonce });
-    const address = userData.address;
-    const message = getSignMessage(address, nonce);
-    const signature = req.query.signature;
-
-    // const verifiedAddress = await web3.eth.accounts.recover(message, signature);
-    const verifiedAddress = "mierda";
-
-    if (verifiedAddress.toLowerCase() == address.toLowerCase()) {
-      const token = jwt.sign({ verifiedAddress }, jwtSecret, {
-        expiresIn: "1d",
-      });
-      res.json({ token });
-    } else {
-      res.sendStatus(403);
-    }
-  });
-
-  const getSignMessage = (address, nonce) => {
-    return `Please sign this message for address ${address}:\n\n${nonce}`;
-  };
   return router;
 };
