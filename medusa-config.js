@@ -19,7 +19,7 @@ switch (process.env.NODE_ENV) {
 
 try {
   dotenv.config({ path: process.cwd() + "/" + ENV_FILE_NAME });
-} catch (e) {}
+} catch (e) { }
 
 // CORS when consuming Medusa from admin
 const ADMIN_CORS =
@@ -28,7 +28,7 @@ const ADMIN_CORS =
 // CORS to avoid issues when consuming Medusa from a client
 const STORE_CORS = process.env.STORE_CORS || "http://localhost:8000";
 
-const DATABASE_TYPE = process.env.DATABASE_TYPE || "sqlite";
+const DATABASE_TYPE = process.env.DATABASE_TYPE || "postgres";
 const DATABASE_URL = process.env.DATABASE_URL || "postgres://localhost/medusa-store";
 const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
 
@@ -82,5 +82,5 @@ if (DATABASE_URL && DATABASE_TYPE === "postgres") {
 module.exports = {
   projectConfig,
   plugins,
-	modules,
+  modules,
 };

@@ -1,12 +1,12 @@
 import { Router } from "express";
 import * as dotenv from "dotenv";
 import * as jwt from "jsonwebtoken"; //TODO: Import only necessary parts of jwt
-import { projectConfig } from "../../medusa-config";
+// import { projectConfig } from "../../medusa-config";
 import cors from "cors";
 
 dotenv.config();
 const corsOptions = {
-  origin: projectConfig.store_cors.split(","),
+  // origin: projectConfig.store_cors.split(","),
   credentials: true,
 };
 
