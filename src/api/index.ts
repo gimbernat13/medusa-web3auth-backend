@@ -11,10 +11,6 @@ import { attachStoreRoutes } from "./routes/store";
 import { attachAdminRoutes } from "./routes/admin";
 
 dotenv.config();
-const corsOptions = {
-  // origin: projectConfig.store_cors.split(","),
-  credentials: true,
-};
 
 export default (rootDirectory: string): Router | Router[] => {
   // Read currently-loaded medusa config
@@ -57,9 +53,16 @@ export default (rootDirectory: string): Router | Router[] => {
   attachStoreRoutes(storeRouter);
   attachAdminRoutes(adminRouter);
 
+  router.get("/store/ping", (req, res) => {
+    res.json({
+      message: "Pong from the server!",
+    });
+  });
+
   router.get("/nonce", (req, res) => {
     const nonce = new Date().getTime();
     const address = req.query.address;
+    console.log("✅ Nonce : ", nonce);
     res.json(nonce);
   });
 
