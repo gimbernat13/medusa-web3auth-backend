@@ -1,8 +1,6 @@
 import { Router } from "express";
 import * as dotenv from "dotenv";
 import * as jwt from "jsonwebtoken"; //TODO: Import only necessary parts of jwt
-// import { projectConfig } from "../../medusa-config";
-
 import cors from "cors";
 import * as bodyParser from "body-parser";
 import { authenticate, ConfigModule } from "@medusajs/medusa";
@@ -28,6 +26,10 @@ export default (rootDirectory: string): Router | Router[] => {
 
   const adminCorsOptions = {
     origin: projectConfig.admin_cors.split(","),
+    credentials: true,
+  };
+  const corsOptions = {
+    origin: projectConfig.store_cors.split(","),
     credentials: true,
   };
 
@@ -59,7 +61,7 @@ export default (rootDirectory: string): Router | Router[] => {
     });
   });
 
-  router.get("/nonce", (req, res) => {
+  router.get("/nonce", cors(storeCorsOptions), (req, res) => {
     const nonce = new Date().getTime();
     const address = req.query.address;
     console.log("✅ Nonce : ", nonce);
