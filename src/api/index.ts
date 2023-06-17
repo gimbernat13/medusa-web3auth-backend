@@ -55,15 +55,8 @@ export default (rootDirectory: string): Router | Router[] => {
   attachStoreRoutes(storeRouter);
   attachAdminRoutes(adminRouter);
 
-  router.get("/store/ping", (req, res) => {
-    res.json({
-      message: "Pong from the server!",
-    });
-  });
-
   router.get("/nonce", cors(storeCorsOptions), (req, res) => {
-    const nonce = new Date().getTime();
-    const address = req.query.address;
+    const nonce = Math.floor(1000 + Math.random() * 9000);
     console.log("✅ Nonce : ", nonce);
     res.json(nonce);
   });
