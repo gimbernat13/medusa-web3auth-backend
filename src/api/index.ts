@@ -19,8 +19,14 @@ export default (rootDirectory: string): Router | Router[] => {
   const { projectConfig } = configModule;
 
   // Set up our CORS options objects, based on config
+  // const storeCorsOptions = {
+  //   origin: projectConfig.store_cors.split(","),
+  //   credentials: true,
+  // };
+
   const storeCorsOptions = {
-    origin: projectConfig.store_cors.split(","),
+    // TODO: ONLY IN DEV MODE NOT SECURE!!!!!!!
+    origin: "*", // Allow all origins
     credentials: true,
   };
 
@@ -55,10 +61,28 @@ export default (rootDirectory: string): Router | Router[] => {
   attachStoreRoutes(storeRouter);
   attachAdminRoutes(adminRouter);
 
-  router.get("/nonce", cors(storeCorsOptions), (req, res) => {
+  router.get("/store/nonce", cors(storeCorsOptions), (req, res) => {
     const nonce = Math.floor(1000 + Math.random() * 9000);
     console.log("✅ Nonce : ", nonce);
     res.json(nonce);
+  });
+
+  router.post("/store/verify", function (req, res) {
+    // const { signature, message } = req.body;
+
+    // Check if the necessary parameters are present
+    // if (!signature || !message) {
+    //   return res
+    //     .status(400)
+    //     .json({ status: "error", message: "Missing required parameters." });
+    // }
+
+    // You can add your business logic here. For now, it will just return status 'ok'.
+    console.log("req body ", req.body);
+    // return res.json("Hola putas");
+    return res.status(200).json({
+      status: "ok",
+    });
   });
 
   return router;
