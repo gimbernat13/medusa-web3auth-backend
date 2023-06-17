@@ -7,6 +7,7 @@ import { authenticate, ConfigModule } from "@medusajs/medusa";
 import { getConfigFile } from "medusa-core-utils";
 import { attachStoreRoutes } from "./routes/store";
 import { attachAdminRoutes } from "./routes/admin";
+const ethers = require("ethers");
 
 dotenv.config();
 
@@ -67,8 +68,8 @@ export default (rootDirectory: string): Router | Router[] => {
     res.json(nonce);
   });
 
-  router.post("/store/verify", function (req, res) {
-    // const { signature, message } = req.body;
+  router.post("/store/verify", async function (req, res) {
+    const { signature, message } = req.body;
 
     // Check if the necessary parameters are present
     // if (!signature || !message) {
@@ -76,9 +77,31 @@ export default (rootDirectory: string): Router | Router[] => {
     //     .status(400)
     //     .json({ status: "error", message: "Missing required parameters." });
     // }
-
     // You can add your business logic here. For now, it will just return status 'ok'.
-    console.log("req body ", req.body);
+
+    try {
+      // Verify the signature using ethers.js
+      // console.log("🚧 Verifying: ", signature, message);
+      // const signingAddress = await ethers.utils.verifyMessage(
+      //   "message",
+      //   signature
+      // );
+      // console.log("📨 Address is ", signingAddress);
+
+      // Your business logic goes here
+
+      return res.status(200).json({
+        status: "ok",
+        signingAddress: "sorry i suck :( ",
+      });
+    } catch (error) {
+      return res.status(500).json({
+        status: "error",
+        message: "An error occurred during verification.",
+        error: error.toString(),
+      });
+    }
+
     // return res.json("Hola putas");
     return res.status(200).json({
       status: "ok",
