@@ -81,18 +81,18 @@ export default (rootDirectory: string): Router | Router[] => {
 
     try {
       // Verify the signature using ethers.js
-      // console.log("🚧 Verifying: ", signature, message);
-      // const signingAddress = await ethers.utils.verifyMessage(
-      //   "message",
-      //   signature
-      // );
-      // console.log("📨 Address is ", signingAddress);
+      console.log("🚧 Verifying:", signature, message);
+      const signingAddress = await ethers.utils.verifyMessage(
+        message,
+        signature
+      );
+      console.log("📨 Address is ", signingAddress);
 
       // Your business logic goes here
 
       return res.status(200).json({
         status: "ok",
-        signingAddress: "sorry i suck :( ",
+        signingAddress,
       });
     } catch (error) {
       return res.status(500).json({
