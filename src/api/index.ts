@@ -63,10 +63,10 @@ export default (rootDirectory: string): Router | Router[] => {
   });
 
   router.post("/store/verify", async function (req, res) {
-    const { signature, message } = req.body;
-    console.log("🚧 Verifying message:", message);
+    const { signature, message, userAddress } = req.body;
+    console.log("🚧 Verifying message:", req.body);
     console.log("🚧 Verifying sig:", signature);
-    console.log("🚧 Verifying Address:", message);
+    console.log("🚧 Verifying Address:", userAddress);
     const email = "mierda@gmail.com";
     const customerService = req.scope.resolve("customerService");
     const manager = req.scope.resolve("manager");
