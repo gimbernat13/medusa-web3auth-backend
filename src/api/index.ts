@@ -8,8 +8,17 @@ import { getConfigFile } from "medusa-core-utils";
 import { attachStoreRoutes } from "./routes/store";
 import { attachAdminRoutes } from "./routes/admin";
 const ethers = require("ethers");
+import "express-session";
 
 dotenv.config();
+
+declare global {
+  namespace Express {
+    interface Request {
+      session: any;
+    }
+  }
+}
 
 export default (rootDirectory: string): Router | Router[] => {
   // Read currently-loaded medusa config
@@ -67,7 +76,7 @@ export default (rootDirectory: string): Router | Router[] => {
     console.log("🚧 Verifying message:", req.body);
     console.log("🚧 Verifying sig:", signature);
     console.log("🚧 Verifying Address:", userAddress);
-    const email = "mierda@gmail.com";
+    const email = userAddress + 133 + "@test.com";
     const customerService = req.scope.resolve("customerService");
     const manager = req.scope.resolve("manager");
 
@@ -85,6 +94,7 @@ export default (rootDirectory: string): Router | Router[] => {
 
     if (!customer) {
       customer = await customerService.withTransaction(manager).create({
+        id: userAddress,
         email,
         first_name: "--",
         last_name: "--",
@@ -93,16 +103,36 @@ export default (rootDirectory: string): Router | Router[] => {
     }
 
     try {
-      return res.status(200).json({
-        status: "ok",
-        // signingAddress,
-      });
+      function sendTokenFactory(
+        domain: "admin" | "store",
+        secret: string,
+        expiresIn: number
+      ) {
+        return (req, res) => {
+          const tokenData =
+            domain === "admin"
+              ? { userId: req.user.id, ...req.user }
+              : { customer_id: req.user.id, ...req.user };
+          const token = jwt.sign(
+            { customer_id: customer.id },
+            projectConfig.jwt_secret!,
+            { expiresIn: "30d" }
+          );
+          const sessionKey = domain === "admin" ? "jwt" : "jwt_store";
+          req.session[sessionKey] = token;
+        };
+      }
+      console.log("🚧🚧🚧🚧🚧 JWTTTTT");
+
+      req.session.jwt_store = jwt.sign(
+        { customer_id: customer.id },
+        projectConfig.jwt_secret!,
+        { expiresIn: "30d" }
+      );
+
+      return res.status(200).json({ ...customer });
     } catch (error) {
-      return res.status(500).json({
-        status: "error",
-        message: "An error occurred during verification.",
-        error: error.toString(),
-      });
+      return res.status(403).json({ message: "The user cannot be verified" });
     }
   });
 
