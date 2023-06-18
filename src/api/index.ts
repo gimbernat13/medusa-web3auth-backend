@@ -64,23 +64,18 @@ export default (rootDirectory: string): Router | Router[] => {
 
   router.post("/store/verify", async function (req, res) {
     const { signature, message } = req.body;
+    console.log("🚧 Verifying message:", message);
+    console.log("🚧 Verifying sig:", signature);
+    console.log("🚧 Verifying Address:", message);
+
+    const customerService = req.scope.resolve("customerService");
+    let customer = await customerService
+      .retrieveRegisteredByEmail("caca@gmail.com")
+      .catch(() => null);
+
+    console.log("customer", customer);
+
     try {
-      console.log("🚧 Verifying message:", message);
-      console.log("🚧 Verifying sig:", signature);
-      console.log("🚧 Verifying Address:", message);
-
-      const web3LoginService = req.scope.resolve("web3LoginService");
-      console.log("web3 login serv ", web3LoginService);
-
-      // const loggedCustomer = await web3LoginService.validateSignature(
-      //   "dummy message",
-      //   "dummy signature"
-      // );
-
-      // console.log("Loged customer ", loggedCustomer);
-
-      // Your business logic goes here
-
       return res.status(200).json({
         status: "ok",
         // signingAddress,
