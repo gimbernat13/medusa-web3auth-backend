@@ -19,12 +19,6 @@ export default (rootDirectory: string): Router | Router[] => {
   );
   const { projectConfig } = configModule;
 
-  // Set up our CORS options objects, based on config
-  // const storeCorsOptions = {
-  //   origin: projectConfig.store_cors.split(","),
-  //   credentials: true,
-  // };
-
   const storeCorsOptions = {
     // TODO: ONLY IN DEV MODE NOT SECURE!!!!!!!
     origin: "*", // Allow all origins
@@ -63,36 +57,33 @@ export default (rootDirectory: string): Router | Router[] => {
   attachAdminRoutes(adminRouter);
 
   router.get("/store/nonce", cors(storeCorsOptions), (req, res) => {
-    const nonce = Math.floor(1000 + Math.random() * 9000);
+    const nonce = Math.floor(1000 + Math.random() * 90000);
     console.log("✅ Nonce : ", nonce);
     res.json(nonce);
   });
 
   router.post("/store/verify", async function (req, res) {
     const { signature, message } = req.body;
-
-    // Check if the necessary parameters are present
-    // if (!signature || !message) {
-    //   return res
-    //     .status(400)
-    //     .json({ status: "error", message: "Missing required parameters." });
-    // }
-    // You can add your business logic here. For now, it will just return status 'ok'.
-
     try {
-      // Verify the signature using ethers.js
-      console.log("🚧 Verifying:", signature, message);
-      const signingAddress = await ethers.utils.verifyMessage(
-        message,
-        signature
-      );
-      console.log("📨 Address is ", signingAddress);
+      console.log("🚧 Verifying message:", message);
+      console.log("🚧 Verifying sig:", signature);
+      console.log("🚧 Verifying Address:", message);
+
+      const web3LoginService = req.scope.resolve("web3LoginService");
+      console.log("web3 login serv ", web3LoginService);
+
+      // const loggedCustomer = await web3LoginService.validateSignature(
+      //   "dummy message",
+      //   "dummy signature"
+      // );
+
+      // console.log("Loged customer ", loggedCustomer);
 
       // Your business logic goes here
 
       return res.status(200).json({
         status: "ok",
-        signingAddress,
+        // signingAddress,
       });
     } catch (error) {
       return res.status(500).json({
@@ -101,11 +92,6 @@ export default (rootDirectory: string): Router | Router[] => {
         error: error.toString(),
       });
     }
-
-    // return res.json("Hola putas");
-    return res.status(200).json({
-      status: "ok",
-    });
   });
 
   return router;

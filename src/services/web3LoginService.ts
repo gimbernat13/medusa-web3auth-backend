@@ -6,6 +6,7 @@ import {
 import { MedusaError } from "medusa-core-utils";
 import { EntityManager } from "typeorm";
 import jwt from "jsonwebtoken";
+const ethers = require("ethers");
 
 class Web3LoginService extends TransactionBaseService {
   //   protected manager_: EntityManager;
@@ -26,6 +27,19 @@ class Web3LoginService extends TransactionBaseService {
     } = this.configModule_;
     this.jwt_secret = jwt_secret;
   }
+
+  verifyMessage = async ({ message, address, signature }) => {
+    try {
+      const signerAddr = await ethers.utils.verifyMessage(message, signature);
+      if (signerAddr !== address) {
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  };
 
   async validateSignature(message, signature) {
     console.log("🚧 Validating Signature");
