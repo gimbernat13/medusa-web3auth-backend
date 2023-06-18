@@ -8,8 +8,6 @@ import { EntityManager } from "typeorm";
 import jwt from "jsonwebtoken";
 
 class Web3LoginService extends TransactionBaseService {
-  //   protected manager_: EntityManager;
-  //   protected transactionManager_: EntityManager;
   private readonly customerService_: CustomerService;
   private readonly eventBus_: EventBusService;
   private readonly configModule_: any;
@@ -19,6 +17,8 @@ class Web3LoginService extends TransactionBaseService {
     super(container);
     this.eventBus_ = container.eventBusService;
     this.customerService_ = container.customerService;
+
+    
     this.configModule_ = container.configModule;
 
     const {

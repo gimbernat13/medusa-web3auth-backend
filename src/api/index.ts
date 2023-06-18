@@ -67,13 +67,30 @@ export default (rootDirectory: string): Router | Router[] => {
     console.log("🚧 Verifying message:", message);
     console.log("🚧 Verifying sig:", signature);
     console.log("🚧 Verifying Address:", message);
-
+    const email = "mierda@gmail.com";
     const customerService = req.scope.resolve("customerService");
+    const manager = req.scope.resolve("manager");
+
     let customer = await customerService
-      .retrieveRegisteredByEmail("caca@gmail.com")
+      .retrieveRegisteredByEmail(email)
       .catch(() => null);
 
     console.log("customer", customer);
+
+    if (!customer) {
+      res.status(404).json({
+        message: `Customer with ${email} was not found. Please sign up instead.`,
+      });
+    }
+
+    if (!customer) {
+      customer = await customerService.withTransaction(manager).create({
+        email,
+        first_name: "--",
+        last_name: "--",
+        has_account: true,
+      });
+    }
 
     try {
       return res.status(200).json({
