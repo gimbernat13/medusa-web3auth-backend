@@ -8,10 +8,9 @@ import { getConfigFile } from "medusa-core-utils";
 import { attachStoreRoutes } from "./routes/store";
 import { attachAdminRoutes } from "./routes/admin";
 const ethers = require("ethers");
-import "express-session";
 
 dotenv.config();
-
+//  Fixes Req.session error
 declare global {
   namespace Express {
     interface Request {
@@ -76,19 +75,53 @@ export default (rootDirectory: string): Router | Router[] => {
     cors(storeCorsOptions),
     async function (req, res) {
       const { signature, message, userAddress } = req.body;
-      console.log("🚧 Verifying message:", req.body);
-      console.log("🚧 Verifying sig:", signature);
-      console.log("🚧 Verifying Address:", userAddress);
-      const email = userAddress + 133 + "@test.com";
+      console.log("🚧 - 📨 Message", message);
+      console.log("🚧 - 📝 Signature:", signature);
+      console.log("🚧 - 👝 Address:", userAddress);
+      const email = "testuser@test.com";
       const customerService = req.scope.resolve("customerService");
       const manager = req.scope.resolve("manager");
+
+      const verifyMessage = async (message, address, signature) => {
+        let message1 = "Hello, world!";
+        let signature1 = "0x"; // Replace with actual signature
+        let signingAddress = ethers.utils.verifyMessage(message, signature);
+        try {
+          const signerAddr = await ethers.utils.verifyMessage(
+            message1,
+            signature1
+          );
+
+          console.log("📒 Signer address", signerAddr);
+          console.log("📖 Input address", address);
+
+          if (signerAddr !== address) {
+            return false;
+          }
+          console.log("u theman ✅✅😎");
+          return true;
+        } catch (err) {
+          console.log(err);
+          return false;
+        }
+      };
+      try {
+        // console.log("📨 verifying signature and message");
+        // const ethersresponse = await verifyMessage(
+        //   message,
+        //   userAddress,
+        //   signature
+        // );
+        // console.log("ethersresponswe", ethersresponse);
+      } catch (error) {
+        console.log("error", error);
+      }
 
       let customer = await customerService
         .retrieveRegisteredByEmail(email)
         .catch(() => null);
 
-      console.log("customer", customer);
-
+      // TODO: ADD VERIFY SIGNATURE METHOD HERE
       if (!customer) {
         res.status(404).json({
           message: `Customer with ${email} was not found. Please sign up instead.`,
@@ -106,7 +139,7 @@ export default (rootDirectory: string): Router | Router[] => {
       }
 
       try {
-        console.log("🚧🚧🚧🚧🚧 JWTTTTT");
+        console.log("🚧 - Signing JWT ");
         try {
           req.session.jwt_store = jwt.sign(
             { customer_id: customer.id },
@@ -115,8 +148,9 @@ export default (rootDirectory: string): Router | Router[] => {
             { expiresIn: "30d" }
           );
         } catch (error) {
-          console.log("❌", error);
+          console.log("❌ Error", error);
         }
+        console.log("✅ Success - 🙍‍♂️ Authenticated user is: ", customer);
         return res.status(200).json({ ...customer });
       } catch (error) {
         return res.status(403).json({ message: "The user cannot be verified" });
